@@ -1,0 +1,32 @@
+.container {
+  width: 800px;
+}
+.container > form.form input,
+.container > form.form select,
+.container > form.form button {
+  font-size: large;
+  height: 50px;
+  margin: 0px;
+  padding: 5px;
+}
+#vpcoords > * {
+  width: 18%;
+}
+#awcoords > input {
+  width: 18%;
+}
+#awcoords > select {
+  width: 12%;
+}
+#terrain > label {
+  margin-left: 20px;
+  font-size: large;
+  display: block;
+}
+#terrain input {
+  margin: 10px 20px;
+  width: 35%;
+}
+* {
+  box-sizing: border-box;
+}

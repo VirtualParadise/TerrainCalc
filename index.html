@@ -4,56 +4,8 @@
 <head>
     <title>VP - AW coordinate converter</title>
 
-    <link  href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap.no-icons.min.css" rel="stylesheet">
-    <link  href="//netdna.bootstrapcdn.com/font-awesome/3.0.2/css/font-awesome.css"                rel="stylesheet">
-    <style type="text/less">
-        .container
-        {
-            width: 800px;
-        }
-
-        .container > form.form input,
-        .container > form.form select,
-        .container > form.form button
-        {
-            font-size : large;
-            height    : 50px;
-            margin    : 0px;
-            padding   : 5px;
-        }
-
-        #vpcoords > *
-        {
-            width : 24%;
-        }
-
-        #awcoords
-        {
-        > input { width: 18%; }
-        > select { width: 12%; }
-        }
-
-        #terrain
-        {
-        > label
-        {
-        margin-left : 20px;
-            font-size   : large;
-            display     : block;
-        }
-
-            input
-            {
-            margin: 10px 20px;
-            width: 35%;
-        }
-        }
-
-        *
-        {
-            box-sizing: border-box;
-        }
-    </style>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/Main.css" rel="stylesheet">
 </head>
 
 <body>
@@ -62,9 +14,10 @@
         <h1>VP coordinates</h1>
 
         <form id="vpcoords" class="form">
-            <input id="vpX" type="number" required step="any" placeholder="X">
-            <input id="vpY" type="number" required required step="any" placeholder="Y">
-            <input id="vpZ" type="number" required step="any" placeholder="Z">
+            <input id="vpX" type="number" required step="any" placeholder="X" value="0.1">
+            <input id="vpY" type="number" required step="any" placeholder="Y" value="0">
+            <input id="vpZ" type="number" required step="any" placeholder="Z" value="0">
+            <input id="vpSF" type="number" required step="any" placeholder="SF" title="Terrain scale factor" value="1">
             <button type="submit">Convert to AW</button>
         </form>
 
@@ -95,20 +48,26 @@
         <form id="terrain" class="form">
             <label>
                 Tile
-                <input id="terrTileX" type="number" placeholder="TileX">x
-                <input id="terrTileZ" type="number" placeholder="TileZ">
+                <input readonly id="terrTileX" type="number" placeholder="TileX">x
+                <input readonly id="terrTileZ" type="number" placeholder="TileZ">
             </label>
 
             <label>
                 Node
-                <input id="terrNodeX" type="number" placeholder="NodeX">x
-                <input id="terrNodeZ" type="number" placeholder="NodeZ">
+                <input readonly id="terrNodeX" type="number" placeholder="NodeX">x
+                <input readonly id="terrNodeZ" type="number" placeholder="NodeZ">
             </label>
 
             <label>
-                Cell
-                <input id="terrCellX" type="number" placeholder="CellX">x
-                <input id="terrCellZ" type="number" placeholder="CellZ">
+                Tile Cell
+                <input readonly id="terrTileCellX" type="number" placeholder="CellX">x
+                <input readonly id="terrTileCellZ" type="number" placeholder="CellZ">
+            </label>
+
+            <label>
+                Node Cell
+                <input readonly id="terrNodeCellX" type="number" placeholder="CellX">x
+                <input readonly id="terrNodeCellZ" type="number" placeholder="CellZ">
             </label>
         </form>
     </div>
@@ -116,124 +75,8 @@
 </body>
 
 <scripts>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"           ></script>
-    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.min.js"      ></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.3.3/less.min.js"                 ></script>
-
-    <!-- Core convertor -->
-    <script>
-        var formVP = $('#vpcoords');
-        var formAW = $('#awcoords');
-        var vpX    = $('#vpX');
-        var vpY    = $('#vpY');
-        var vpZ    = $('#vpZ');
-        var vpZ    = $('#vpZ');
-        var vpZ    = $('#vpZ');
-        var awLon  = $('#awLon');
-        var awLat  = $('#awLat');
-        var awAlt  = $('#awAlt');
-        var awNS   = $('#awNS');
-        var awWE   = $('#awWE');
-
-        var terrTileX = $('#terrTileX');
-        var terrTileZ = $('#terrTileZ');
-        var terrNodeX = $('#terrNodeX');
-        var terrNodeZ = $('#terrNodeZ');
-        var terrCellX = $('#terrCellX');
-        var terrCellZ = $('#terrCellZ');
-
-        function handleVP()
-        {
-            var x = vpX.val();
-            var y = vpY.val();
-            var z = vpZ.val();
-
-            resolveTerrain(x, z);
-
-            var ns = (z >= 0) ? 'N' : 'S';
-            var we = (x >= 0) ? 'W' : 'E';
-            x       = Math.abs(x);
-            z       = Math.abs(z);
-
-            awLon.val(x);
-            awLat.val(z);
-            awNS.val(ns);
-            awWE.val(we);
-            awAlt.val(y);
-
-            return false; // prevent submit
-        }
-
-        function resolveTerrain(x, z)
-        {
-            if (x >= 0)
-            {
-                var nodes = Math.floor(x / 8);
-                var tiles = Math.floor(nodes / 4);
-                nodes = nodes % 4;
-
-                terrTileX.val(tiles);
-                terrNodeX.val(nodes);
-                terrCellX.val(x % 8);
-            }
-            else
-            {
-                x++;
-                var nodes = Math.ceil(x / 8);
-                var tiles = Math.ceil(nodes / 4) - 1;
-                nodes = 4 - Math.abs(nodes % 4) - 1;
-                var cells = 8 - Math.abs(x % 8) - 1;
-
-                terrTileX.val(tiles);
-                terrNodeX.val(nodes);
-                terrCellX.val(cells);
-            }
-
-            if (z >= 0)
-            {
-                var nodes = Math.floor(z / 8);
-                var tiles = Math.floor(nodes / 4);
-                nodes = nodes % 4;
-
-                terrTileZ.val(tiles);
-                terrNodeZ.val(nodes);
-                terrCellZ.val(z % 8);
-            }
-            else
-            {
-                z++;
-                var nodes = Math.ceil(z / 8);
-                var tiles = Math.ceil(nodes / 4) - 1;
-                nodes = 4 - Math.abs(nodes % 4) - 1;
-                var cells = 8 - Math.abs(z % 8) - 1;
-
-                terrTileZ.val(tiles);
-                terrNodeZ.val(nodes);
-                terrCellZ.val(cells);
-            }
-        }
-
-        function handleAW()
-        {
-            var lat = awLat.val();
-            var lon = awLon.val();
-            var alt = awAlt.val();
-
-            if (awNS.val() == 'S')
-                lat = 0 - lat;
-
-            if (awWE.val() == 'E')
-                lon = 0 - lon;
-
-            vpX.val(lon);
-            vpZ.val(lat);
-            vpY.val(alt);
-
-            return false; // prevent submit
-        }
-
-        formVP.submit(handleVP);
-        formAW.submit(handleAW);
-    </script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="/js/Main.js"></script>
 </scripts>
 </html>
