@@ -25,49 +25,22 @@ var CalcValues = function(x)
     var cell     = Math.floor(x / vpSF.val());
     var negative = cell < 0;
 
-    // First, determine tile
-    var tileCellLowerBound, tileCellUpperBound;
-    var tile = 0;
-    var tileStep = negative ? -1 : 1;
+    // Calculate tile number
+    this.Tile = negative
+        ? Math.ceil( (cell + 1) / 32 - 1 )
+        : Math.floor(cell / 32);
 
-    while (true)
-    {
-        tileCellLowerBound = tile * 32;
-        tileCellUpperBound = tileCellLowerBound + 32;
+    // Calculate cell offset relative to tile origin
+    this.TileCell = cell % 32;
 
-        if (cell >= tileCellLowerBound && cell < tileCellUpperBound)
-            break;
+    if (this.TileCell < 0)
+        this.TileCell = this.TileCell + 32;
 
-        tile += tileStep;
-    }
+    // Calculate node offset relative to node origin
+    this.NodeCell = this.TileCell % 8;
 
-    // Next, determine offset within that tile (or: the tile cell)
-    // And also the node it is in
-    var node = 0;
-    var cellRelativeToNode = 0;
-    var cellRelativeToTile = 0;
-    var cellRelativeToTileSearch = tileCellLowerBound;
-
-    while (true)
-    {
-        if (cellRelativeToNode >= 8)
-        {
-            node++;
-            cellRelativeToNode = 0;
-        }
-
-        if (cellRelativeToTileSearch == cell)
-            break;
-
-        cellRelativeToTileSearch++;
-        cellRelativeToTile++;
-        cellRelativeToNode++;
-    }
-
-    this.Tile = tile;
-    this.TileCell = cellRelativeToTile;
-    this.NodeCell = cellRelativeToNode;
-    this.Node = node;
+    // Calculate node relative to tile origin
+    this.Node = Math.floor(this.TileCell / 8);
 };
 
 function handleVP()
